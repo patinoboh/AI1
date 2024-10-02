@@ -1,4 +1,8 @@
 # AI I
+
+- [**Course website**](https://ktiml.mff.cuni.cz/~bartak/ui/)
+- [**Seminar website**](http://svancara.net/UI1_cz.html)
+
 This repository contains practical tasks for the [Artificial Intelligence 1](http://ktiml.mff.cuni.cz/~bartak/ui/) course, that is based on book by Russel and Norvig [Artificial Intellignece: A Modern Approach, 4th Edition](https://www.pearson.com/us/higher-education/program/Russell-Artificial-Intelligence-A-Modern-Approach-4th-Edition/PGM1263338.html). Tasks are designed to review AI algorithms and use them to play games.
 
 ---
