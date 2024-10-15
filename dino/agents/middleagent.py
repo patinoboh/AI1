@@ -6,25 +6,25 @@ from itertools import accumulate
 from math import ceil, floor
 
 class MiddleAgent(Agent):
-    def print_object(o, name=None):
+    def write_object(o, name=None):
         name = name if name else o.type
         print(f"{name} (x,y)=({o.rect.x},{o.rect.y}) (w,h)=({o.rect.width},{o.rect.height}) speed={o.speed}")
         
     
-    def print_dino(game):
+    def write_dino(game):
         dino = game.dino
         print(f"POSIITON    DINO ({dino.x},{dino.y})    BODY ({dino.body.x},{dino.body.y})    HEAD ({dino.head.x},{dino.head.y})")
         print(f"HW    BODY ({dino.body.height},{dino.body.width})    HEAD ({dino.head.height},{dino.head.width})    GAME ({HEIGHT},{WIDTH})")
         print(f"state {dino.state}")
 
-    def print_obstacles(game):
+    def write_obstacles(game):
         obstacles = sorted(game.obstacles, key=lambda obs: obs.rect.x)
 
         print(f"obstacles count : {len(obstacles)}")
         print(f"game speed : {game.speed}")
         print(f"dino (x,y)=({game.dino.x},{game.dino.y})")
         for i,o in enumerate(obstacles):
-            MiddleAgent.print_object(o)
+            MiddleAgent.write_object(o)
 
     def overlapse2(d_l, d_r, o_l, o_r):
         #    ____    DINO
@@ -79,8 +79,8 @@ class MiddleAgent(Agent):
 
                 continue
 
-            MiddleAgent.print_dino(game)
-            MiddleAgent.print_object(o)
+            MiddleAgent.write_dino(game)
+            MiddleAgent.write_object(o)
             
             o_moving_speed = game.speed + o.speed
             o_h = o.type.height            
@@ -103,7 +103,7 @@ class MiddleAgent(Agent):
             distance_made_by_fall = game.speed * (ticks_to_fast_fall + 1)
 
 
-            print(f"GS : {game.speed} FALL : {ticks_to_fast_fall} COLIS : {ticks_to_collision} OVER : {ticks_to_get_over} RIGHT : {ticks_to_collision_while_right}")
+            print(f"GS : {game.speed} FALL : {ticks_to_fast_fall} KOLIZ : {ticks_to_collision} OVER : {ticks_to_get_over} RIGHT : {ticks_to_collision_while_right}")
 
             if dino.state != DinoState.JUMPING and o.type in can_sneak:
                 down_move = down_move if down_move == DinoMove.DOWN_LEFT and MiddleAgent.can_reverse(game) else (down_move if down_move == DinoMove.DOWN_RIGHT else DinoMove.DOWN)
