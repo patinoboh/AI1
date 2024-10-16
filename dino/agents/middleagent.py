@@ -46,7 +46,7 @@ class MiddleAgent(Agent):
         for o in game.obstacles:
             o_moving_speed = game.speed + o.speed
             o_x_next = o.rect.x - (o_moving_speed)
-            can_he &= MiddleAgent.overlapse2(game.dino.x - 20, game.dino.x + 77 - 20, o_x_next, o_x_next + o.type.width)
+            can_he &= MiddleAgent.overlapse2(game.dino.x - 20 - game.speed, game.dino.x + 77 - 20 - game.speed, o_x_next, o_x_next + o.type.width)
         # print(f"CAN REVERSE ?? {can_he} size {len(game.obstacles)}")
         return can_he
 
@@ -160,18 +160,24 @@ class MiddleAgent(Agent):
             if dino.state != J and o.type in can_sneak and (not next_o or (next_o.type in can_sneak or next_o.rect.x - o_x + o_w > 150)):
                 print("SNEAKING")
                 return DinoMove.DOWN
+            
+            # elif dino.state != J:
+            #     print("LEN TAK PROSTE VYSKOC UUUUP")
+            #     return DinoMove.UP
 
-            elif dino.state != J and jump_over in [crash, crash + 1, crash + 2, crash + 3]:
+            elif dino.state != J and jump_over in range(crash, crash + 4):
                 print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUP")
                 return DinoMove.UP
             
+            elif dino.state != J:
+                return balance_move
 
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on > get_behind_right:
                 print("TESNE TESNE")
                 if not next_o:
                     print("NIKTO DALSI, IDEM DOLE")
                     return DinoMove.DOWN_RIGHT
-                elif next_o.type in can_sneak and fast_fall_under_next > crash_right_next:
+                elif next_o.type in can_sneak and fast_fall_under_next > crash - 6:
                     print("DALSIEHO STIHNEM PODLIEZT")
                     return DinoMove.DOWN_RIGHT
                 elif fast_fall + jump_over_next < crash_right_next:
@@ -179,33 +185,51 @@ class MiddleAgent(Agent):
                     return DinoMove.DOWN_RIGHT
                 else:
                     print("NESTIHAM IST DOLE")
-                    if(d_y + d_h > next_o.rect.y):
+                    if(d_y + d_h < next_o.rect.y):
                         print("ALE SOM NAD NIM, TAK HO SEKNEM")
                         return DinoMove.RIGHT
                     else:
-                        print("NESTIHAM IST DOLE A SOM POD NIM, TAK IDEM DOLAVA HORE")                        
+                        print("NESTIHAM IST DOLE A SOM POD NIM, TAK IDEM DOLAVA HORE / teda len hore")
                         return DinoMove.UP_LEFT
             
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on <= get_behind_right:
                 print("NAD ALE NESTIHA")
-                return DinoMove.UP
+                return DinoMove.RIGHT
             
             elif dino.state == J and d_x > o_x + o_w:
                 print("ZA PREKAZKOU")
                 return DinoMove.DOWN
             
-            elif dino.state == J and jump_over >= crash_right:
-                print("PRED PREKAZKOU")                
+            elif dino.state == J:
+                print("PRED PREKAZKOU")
+
+                if o.type in can_sneak and fast_fall_under_next > crash - 5:
+                    print("DALSIEHO STIHNEM PODLIEZT")
+                    return DinoMove.DOWN
+
+
+                if(jump_over > crash):
+                    if(d_y + d_h < o_x):
+                        print("SOM PRED ALE NAD TAK IDEM DOPRAVA")
+                        return DinoMove.RIGHT
+                    print("PRED PRED = UP")
+                    return DinoMove.UP
                 
                 if o.type in can_sneak and fast_fall_under_next > crash:
                     print("DALSIEHO STIHNEM PODLIEZT")
+                    if(MiddleAgent.can_reverse(game)):
+                        print("MOZEM REVERSE")
+                        return DinoMove.DOWN_LEFT
                     return DinoMove.DOWN
-                elif fast_fall + jump_over < crash:
+                elif fast_fall + jump_over < crash - 5:
                     print("STIHAM DOLE HORE")
+                    if(MiddleAgent.can_reverse(game)):
+                        print("MOZEM REVERSE")
+                        return DinoMove.DOWN_LEFT
                     return DinoMove.DOWN
                 else:
                     print("NESTIHAM IST DOLE")
-                    if(d_y + d_h > o_y + o_h):
+                    if(d_y + d_h < o_y):
                         print("NESTIHAM IST DOLE ALE SOM NAD NIM TAK HO SEKNEM")
                         return DinoMove.RIGHT
                     else:
