@@ -121,14 +121,16 @@ class MiddleAgent(Agent):
             # or oversetimates, depending on the implementation           
             
             right_crash_prefixes = list(accumulate(list(map(lambda x: x + o_moving_speed, movements[1:]))))
+            nextspeed = 0 if not next_o else next_o.speed + game.speed
+            right_crash_prefixes_next = list(accumulate(list(map(lambda x: x + nextspeed, movements[1:]))))
             
-            crash_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o.rect.x - (dino.x + d_w_duck)) + 1 # unerestimates
-            crash_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x - (dino.x + d_w_duck)) + 1 # underestimates
+            crash_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o.rect.x - (dino.x + d_w_duck)) + 2 # unerestimates
+            crash_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x - (dino.x + d_w_duck)) + 2 # underestimates
             
             # get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x + next_o.type.width - d_x) + 1
 
-            get_behind_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o_x + o_w - d_x)
-            get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x + next_o.type.width - d_x)
+            get_behind_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o_x + o_w - d_x) + 1
+            get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes_next) if x > next_o.rect.x + next_o.type.width - d_x) + 1
 
             speed_glide = next(i for i,x in enumerate(movements_prefixes) if x > o_x + o_w - d_x)
             
@@ -146,18 +148,12 @@ class MiddleAgent(Agent):
             fast_fall_on_next = 0 if not next_o else next(i for i,x in enumerate(f_falls_prefixes) if x > next_o.rect.y - d_y - d_h)
 
             fast_fall_under = next(i for i,x in enumerate(f_falls_prefixes) if x > o_y + o_h - d_y)
-            fast_fall_under_next = 0 if not next_o else next(i for i,x in enumerate(f_falls_prefixes) if x > next_o.rect.y + next_o.type.height - d_y)
+            fast_fall_under_next = 0 if not next_o else next(i for i,x in enumerate(f_falls_prefixes) if x > next_o.rect.y + next_o.type.height - d_y) + 1
 
             balance_move = DinoMove.RIGHT if jump_over < crash_right and d_x < WIDTH / 4 else (DinoMove.LEFT if MiddleAgent.can_reverse(game) else DinoMove.NO_MOVE)
             down_balance = DinoMove.DOWN_RIGHT if balance_move == DinoMove.RIGHT else (DinoMove.DOWN_LEFT if balance_move == DinoMove.LEFT else DinoMove.DOWN)
-            # print(balance_move)
-            # print(down_balance)
-
 
             print(f"GS {game.speed}, OVER {jump_over}, FFALL {fast_fall}, FALL {fall}, FFON {fast_fall_on}, DROP_ON {drop_on}, CRASH {crash}, C_RIGHT {crash_right}, BEHIND_R {get_behind_right}")
-            # return down_balance
-
-            
 
             if dino.state != J and o.type in can_sneak and (not next_o or (next_o.type in can_sneak or next_o.rect.x - o_x + o_w > 150)):
                 print("SNEAKING")
@@ -171,19 +167,28 @@ class MiddleAgent(Agent):
                 return balance_move
 
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on > get_behind_right:
-                print("TESNE TESNE")
                 
                 # ticks_right = undefined
                 # ticks_normal = undefined
-                
+                start = o_x - d_w
+                end = o_x + o_w + d_w
+                l = end - start
+                k2 = 3
+                exponent = 2
+                k1 = 0 if not next_o else k2 - (l - abs(d_x - start )) / l * k2 # predtym *5* alebo 6
+                k1 = k1 * 4
+
+                print(f"TESNE TESNE {k1}")
+
                 if not next_o:
                     print("NIKTO DALSI, IDEM DOLE")
                     return DinoMove.DOWN_RIGHT
-                elif next_o.type in can_sneak and fast_fall_under_next < crash + 9:
-                    print("DALSIEHO STIHNEM PODLIEZT")
+                elif next_o.type in can_sneak and fast_fall_under_next < crash_next + k1:
+                    print(f"DALSIEHO STIHNEM PODLIEZT")
                     return DinoMove.DOWN_RIGHT
-                elif fast_fall + jump_over_next < crash + 9:
-                    print("STIHAM DOLE HORE")
+
+                elif fast_fall + jump_over_next < crash_next + k1:
+                    print(f"STIHAM DOLE HORE")
                     return DinoMove.DOWN_RIGHT
                 else:
                     print("NESTIHAM IST DOLE")
@@ -198,32 +203,35 @@ class MiddleAgent(Agent):
                 print("NAD ALE NESTIHA")
                 return DinoMove.RIGHT
             
-            elif dino.state == J and d_x > o_x + o_w:
-                print("ZA PREKAZKOU")
-                return DinoMove.DOWN
+            # elif dino.state == J and d_x > o_x + o_w:
+            #     print("ZA PREKAZKOU")
+            #     return DinoMove.DOWN
             
             elif dino.state == J:
                 print("PRED PREKAZKOU")
 
-                if o.type in can_sneak and fast_fall_under < crash:
-                    print("DALSIEHO STIHNEM PODLIEZT")
+                k = o_x - d_x - d_h
+                k = game.speed / 4
+
+                if o.type in can_sneak and fast_fall_under < crash + k:
+                    print("DALSIEHO STIHNEM PODLIEZT ROVNO TU")
                     return DinoMove.DOWN
 
 
                 if(jump_over > crash):
-                    if(d_y + d_h < o_x):
+                    if(d_y + d_h < o_y):
                         print("SOM PRED ALE NAD TAK IDEM DOPRAVA")
                         return DinoMove.RIGHT
                     print("PRED PRED = UP")
                     return DinoMove.UP
                 
-                if o.type in can_sneak and fast_fall_under < crash:
+                if o.type in can_sneak and fast_fall_under < crash + k:
                     print("DALSIEHO STIHNEM PODLIEZT")
                     if(MiddleAgent.can_reverse(game)):
                         print("MOZEM REVERSE")
                         return DinoMove.DOWN_LEFT
                     return DinoMove.DOWN
-                elif fast_fall + jump_over < crash:
+                elif fast_fall + jump_over < crash + k:
                     print("STIHAM DOLE HORE")
                     if(MiddleAgent.can_reverse(game)):
                         print("MOZEM REVERSE")
