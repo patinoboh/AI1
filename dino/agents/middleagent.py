@@ -175,7 +175,7 @@ class MiddleAgent(Agent):
                 l = end - start
                 k2 = 3
                 k1 = 0 if not next_o else k2 - (l - abs(d_x - start )) / l * k2 # predtym *5* alebo 6
-                k1 = ceil(k1 * 3) - 5
+                k1 = ceil(k1 * 3) - 4 if game.speed < 13 else ceil(k1 * 3) - 5
                 # k2 4 k1 = *4
                 print(f"TESNE TESNE {k1}")
 
