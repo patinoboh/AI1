@@ -162,7 +162,7 @@ class MiddleAgent(Agent):
 
             elif dino.state != J and jump_over in [crash_right, crash_right + 1, crash_right + 2, crash_right + 3]:
                 print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUP")
-                return DinoMove.UP_RIGHT
+                return DinoMove.UP
             
 
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on > get_behind_right:
