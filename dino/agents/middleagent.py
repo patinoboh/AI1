@@ -114,6 +114,7 @@ class MiddleAgent(Agent):
             
 
             crash = ceil((o.rect.x - (dino.x + d_w)) / o_moving_speed) # ok
+            crash_next = 0 if not next_o else ceil((next_o.rect.x - (dino.x + d_w)) / (next_o.speed + game.speed)) # ok
             
             # movement to right underestimates and it cannot be fixed, because there is no way to know whether we moved right before
             # the movement gradually increases so the only right estimate is the one made at the start of the movement, that in underestimates
@@ -160,7 +161,7 @@ class MiddleAgent(Agent):
                 print("SNEAKING")
                 return DinoMove.DOWN
 
-            elif dino.state != J and jump_over in [crash_right, crash_right + 1, crash_right + 2, crash_right + 3]:
+            elif dino.state != J and jump_over in [crash, crash + 1, crash + 2, crash + 3]:
                 print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUP")
                 return DinoMove.UP
             
@@ -182,24 +183,24 @@ class MiddleAgent(Agent):
             
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on <= get_behind_right:
                 print("NAD ALE NESTIHA")
-                return DinoMove.RIGHT
+                return DinoMove.UP
             
-            elif dino.state == J and d_x > o_x + o_w:                
+            elif dino.state == J and d_x > o_x + o_w:
                 print("ZA PREKAZKOU")
                 return DinoMove.DOWN
             
             elif dino.state == J and jump_over >= crash_right:
                 print("PRED PREKAZKOU")                
                 
-                if o.type in can_sneak and fast_fall_under_next > crash_right_next:
+                if o.type in can_sneak and fast_fall_under_next > crash:
                     print("DALSIEHO STIHNEM PODLIEZT")
-                    return DinoMove.DOWN_RIGHT
-                elif fast_fall + jump_over < crash_right:
+                    return DinoMove.DOWN
+                elif fast_fall + jump_over < crash:
                     print("STIHAM DOLE HORE")
-                    return DinoMove.DOWN_RIGHT
+                    return DinoMove.DOWN
                 else:
                     print("NESTIHAM IST DOLE")
-                    return DinoMove.RIGHT
+                    return DinoMove.UP
                 
                 # if o.type in can_sneak and fast_fall_under > crash:
                 #     print("IDEM DOLUUUUU")
