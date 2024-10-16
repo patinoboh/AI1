@@ -179,7 +179,12 @@ class MiddleAgent(Agent):
                     return DinoMove.DOWN_RIGHT
                 else:
                     print("NESTIHAM IST DOLE")
-                    return DinoMove.RIGHT
+                    if(d_y + d_h > next_o.rect.y):
+                        print("ALE SOM NAD NIM, TAK HO SEKNEM")
+                        return DinoMove.RIGHT
+                    else:
+                        print("NESTIHAM IST DOLE A SOM POD NIM, TAK IDEM DOLAVA HORE")                        
+                        return DinoMove.UP_LEFT
             
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on <= get_behind_right:
                 print("NAD ALE NESTIHA")
@@ -200,7 +205,12 @@ class MiddleAgent(Agent):
                     return DinoMove.DOWN
                 else:
                     print("NESTIHAM IST DOLE")
-                    return DinoMove.UP
+                    if(d_y + d_h > o_y + o_h):
+                        print("NESTIHAM IST DOLE ALE SOM NAD NIM TAK HO SEKNEM")
+                        return DinoMove.RIGHT
+                    else:
+                        print("NESTIHAM IST DOLE A SOM POD NIM TAK IDEM HORE DOLAVA")
+                        return DinoMove.UP_LEFT
                 
                 # if o.type in can_sneak and fast_fall_under > crash:
                 #     print("IDEM DOLUUUUU")
