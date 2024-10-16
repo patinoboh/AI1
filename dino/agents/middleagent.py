@@ -61,22 +61,30 @@ class MiddleAgent(Agent):
 
         d_w = 77 # head + offset of the head
         d_h = 80 # body + offset of the head
-        d_w_duck = 101
-        # d_h_duck = 
+        d_w_duck = 45 + 56
+        d_h_duck = 32 + 13
+
         dino_ground_y = 310
         ground_level = 310 + d_h
         birds = [ObstacleType.BIRD1, ObstacleType.BIRD2, ObstacleType.BIRD3]
         can_sneak = [ObstacleType.BIRD1, ObstacleType.BIRD2]
-        jumps = [0] + list(range(20,-1,-1)) # dino jumps 20,19,18,..,1,0 then falls 1,2,3,..,20
-        prefixes = [ground_level - x for x in list(accumulate(jumps))] + [0]        
-        falls = [0] + list(range(4,41,2)) + [40] * 3
+        
+        jumps = [0] + list(range(20,-1,-1)) # dino jumps 20,19,18,..,1,0
+        jumps_prefixes = list(accumulate(jumps))
+
+        falls = list(range(0,51)) # dino falls 0,1,2,..
         falls_prefixes = list(accumulate(falls))
+        
+        f_falls = list(range(0,60,2)) # while down, dino falls 0,2,4,..
+        f_falls_prefixes = list(accumulate(f_falls))
+
+        movements = [0] + list(range(0,51)) # dino moves 0,1,2,.. to the right, left is bigger by game.speed in each step
+        movements_prefixes = list(accumulate(movements))
 
         
         for o in obstacles:
             if(o.rect.x + o.type.width < dino.x):
                 print(f"PASSING OBJECT {o.type}")
-
                 continue
 
             # MiddleAgent.write_dino(game)
@@ -85,26 +93,41 @@ class MiddleAgent(Agent):
             o_moving_speed = game.speed + o.speed
             o_h = o.type.height
             o_x_next = o.rect.x - (o_moving_speed)
+            d_x = dino.x
+            d_y = dino.y
+            o_x = o.rect.x
+            o_y = o.rect.y
+            o_w = o.type.width
+            o_h = o.type.height
+            
 
             down_move = DinoMove.DOWN_LEFT if dino.x > WIDTH / 5 else DinoMove.DOWN_RIGHT
             move_move = DinoMove.LEFT if dino.x > WIDTH / 5 and MiddleAgent.can_reverse(game) else (DinoMove.RIGHT if not MiddleAgent.overlapse2(dino.x + 20, dino.x + d_w_duck + 20, o_x_next, o_x_next + o.type.width) else DinoMove.NO_MOVE)
 
 
-            ticks_to_collision = ceil((o.rect.x - (dino.x + d_w)) / o_moving_speed) + 1
+            crash = ceil((o.rect.x - (dino.x + d_w)) / o_moving_speed) # ok
             
             # movement to right underestimates and it cannot be fixed, because there is no way to know whether we moved right before
-            ticks_to_collision_while_right = ceil((o.rect.x - (dino.x + d_w_duck)) / (o_moving_speed + game.speed)) + 2 # not correct
-            ticks_to_glide_over = ceil((o.rect.x + o.type.width - (dino.x + d_w)) / (o_moving_speed + game.speed)) + 2 # not correct, underestimates
+            # the movement gradually increases so the only right estimate is the one made at the start of the movement, that in underestimates
+            # or oversetimates, depending on the implementation           
+            
+            right_crash_prefixes = list(enumerate([0] + list(map(lambda x: x + o_moving_speed, movements_prefixes[1:]))))            
+            crash_right = next(i for i,x in right_crash_prefixes if x > o.rect.x - (dino.x + d_w_duck)) - 1 # unerestimates
 
-            ticks_to_get_over = next(i for i,x in enumerate(prefixes) if x < o.rect.y)                        
-            ticks_to_fall = abs(next(i for i,x in enumerate(prefixes) if x < dino.y + d_h) - ticks_to_get_over) + 2
-            to_drop = (o.rect.y + o.type.height) - (dino.y - 21) if dino.y <= o.rect.x else 0
-            ticks_to_fast_fall = next(i for i,x in enumerate(falls_prefixes) if x > dino_ground_y - (dino.y - 20))
-            distance_made_by_fall = game.speed * (ticks_to_fast_fall + 1)
+            speed_glide = next(i for i,x in enumerate(movements_prefixes) if x > o.rect.x + o.type.width - dino.x)
+            
+            get_over = next(i for i,x in enumerate(jumps_prefixes) if x > dino.y + d_h - o.rect.y)
+            
+            fall = next(i for i,x in enumerate(falls_prefixes) if x > dino_ground_y - dino.y)
+            
+            fast_fall = next(i for i,x in enumerate(f_falls_prefixes) if x > dino_ground_y - dino.y)
+
+            drop_on = next(i for i,x in enumerate(jumps_prefixes[1:]) if x > o.rect.y - dino.y - d_h)
 
 
-            print(f"GS : {game.speed} FALL : {ticks_to_fast_fall} KOLIZ : {ticks_to_collision} OVER : {ticks_to_get_over} RIGHT : {ticks_to_collision_while_right}")
+            print(f"GS {game.speed}, OVER {get_over}, FFALL {fast_fall}, FALL {fall}, DROP_ON {drop_on}, CRASH {crash}, C_RIGHT {crash_right}")
 
+            return DinoMove.UP
             if dino.state != DinoState.JUMPING and o.type in can_sneak:
                 down_move = down_move if down_move == DinoMove.DOWN_LEFT and MiddleAgent.can_reverse(game) else (down_move if down_move == DinoMove.DOWN_RIGHT else DinoMove.DOWN)
                 print(f"PODLIEZAM : {down_move}")
@@ -114,7 +137,7 @@ class MiddleAgent(Agent):
                 print("NACO SA KRCI?")
                 return move_move
 
-            elif dino.state != DinoState.JUMPING and ticks_to_collision == ticks_to_get_over + 1:
+            elif dino.state != DinoState.JUMPING and crash == get_over + 1:
                 print("SKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMM")
                 return DinoMove.UP
                         
@@ -122,15 +145,15 @@ class MiddleAgent(Agent):
                 print("OVERLAPS")
                 return DinoMove.RIGHT
             
-            elif dino.state == DinoState.JUMPING and ticks_to_fast_fall + ticks_to_get_over < ticks_to_collision - 2:
+            elif dino.state == DinoState.JUMPING and fast_fall + get_over < crash - 2:
                 print("STIHAM IST DOLE")
                 return DinoMove.DOWN
 
-            elif dino.state == DinoState.JUMPING and (ticks_to_fall >= ticks_to_glide_over):
+            elif dino.state == DinoState.JUMPING and (fall >= glide):
                 print("STIHAM")
                 return DinoMove.RIGHT
 
-            elif dino.state == DinoState.JUMPING and (0 <= ticks_to_collision <= ticks_to_get_over + 1):
+            elif dino.state == DinoState.JUMPING and (0 <= crash <= get_over + 1):
                 print("RIGHT VO VZDUCHU - NO MOVE/UP")
                 return DinoMove.UP
             
@@ -138,11 +161,11 @@ class MiddleAgent(Agent):
                 print("LEFT")
                 return DinoMove.DOWN_LEFT
             
-            elif dino.state == DinoState.JUMPING and ticks_to_get_over > ticks_to_collision:
+            elif dino.state == DinoState.JUMPING and get_over > crash:
                 print("SKUS UP_LEFT")
                 return DinoMove.UP_LEFT
             
-            elif dino.state == DinoState.JUMPING and ticks_to_fast_fall + ticks_to_get_over < ticks_to_collision:
+            elif dino.state == DinoState.JUMPING and fast_fall + get_over < crash:
                 print("JUST DOWN")
                 return DinoMove.DOWN
             
