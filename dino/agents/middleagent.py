@@ -68,8 +68,8 @@ class MiddleAgent(Agent):
         birds = [ObstacleType.BIRD1, ObstacleType.BIRD2, ObstacleType.BIRD3]
         can_sneak = [ObstacleType.BIRD1, ObstacleType.BIRD2]
         jumps = [0] + list(range(20,-1,-1)) # dino jumps 20,19,18,..,1,0 then falls 1,2,3,..,20
+        prefixes = [ground_level - x for x in list(accumulate(jumps))] + [0]        
         falls = [0] + list(range(4,41,2)) + [40] * 3
-        prefixes = [ground_level - x for x in list(accumulate(jumps))] + [0]
         falls_prefixes = list(accumulate(falls))
 
         
@@ -79,11 +79,11 @@ class MiddleAgent(Agent):
 
                 continue
 
-            MiddleAgent.write_dino(game)
+            # MiddleAgent.write_dino(game)
             MiddleAgent.write_object(o)
             
             o_moving_speed = game.speed + o.speed
-            o_h = o.type.height            
+            o_h = o.type.height
             o_x_next = o.rect.x - (o_moving_speed)
 
             down_move = DinoMove.DOWN_LEFT if dino.x > WIDTH / 5 else DinoMove.DOWN_RIGHT
