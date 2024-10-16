@@ -124,9 +124,11 @@ class MiddleAgent(Agent):
             
             crash_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o.rect.x - (dino.x + d_w_duck)) + 1 # unerestimates
             crash_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x - (dino.x + d_w_duck)) + 1 # underestimates
+            
+            # get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x + next_o.type.width - d_x) + 1
 
-            get_behind_right = next(i for i,x in enumerate(movements_prefixes) if x > o_x + o_w - d_x)
-            get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(movements_prefixes) if x > next_o.rect.x + next_o.type.width - d_x)
+            get_behind_right = next(i for i,x in enumerate(right_crash_prefixes) if x > o_x + o_w - d_x)
+            get_behind_right_next = 0 if not next_o else next(i for i,x in enumerate(right_crash_prefixes) if x > next_o.rect.x + next_o.type.width - d_x)
 
             speed_glide = next(i for i,x in enumerate(movements_prefixes) if x > o_x + o_w - d_x)
             
@@ -161,10 +163,6 @@ class MiddleAgent(Agent):
                 print("SNEAKING")
                 return DinoMove.DOWN
             
-            # elif dino.state != J:
-            #     print("LEN TAK PROSTE VYSKOC UUUUP")
-            #     return DinoMove.UP
-
             elif dino.state != J and jump_over in range(crash, crash + 4):
                 print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUP")
                 return DinoMove.UP
@@ -174,13 +172,17 @@ class MiddleAgent(Agent):
 
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on > get_behind_right:
                 print("TESNE TESNE")
+                
+                # ticks_right = undefined
+                # ticks_normal = undefined
+                
                 if not next_o:
                     print("NIKTO DALSI, IDEM DOLE")
                     return DinoMove.DOWN_RIGHT
-                elif next_o.type in can_sneak and fast_fall_under_next > crash - 6:
+                elif next_o.type in can_sneak and fast_fall_under_next < crash + 9:
                     print("DALSIEHO STIHNEM PODLIEZT")
                     return DinoMove.DOWN_RIGHT
-                elif fast_fall + jump_over_next < crash_right_next:
+                elif fast_fall + jump_over_next < crash + 9:
                     print("STIHAM DOLE HORE")
                     return DinoMove.DOWN_RIGHT
                 else:
@@ -203,7 +205,7 @@ class MiddleAgent(Agent):
             elif dino.state == J:
                 print("PRED PREKAZKOU")
 
-                if o.type in can_sneak and fast_fall_under_next > crash - 5:
+                if o.type in can_sneak and fast_fall_under < crash:
                     print("DALSIEHO STIHNEM PODLIEZT")
                     return DinoMove.DOWN
 
@@ -215,13 +217,13 @@ class MiddleAgent(Agent):
                     print("PRED PRED = UP")
                     return DinoMove.UP
                 
-                if o.type in can_sneak and fast_fall_under_next > crash:
+                if o.type in can_sneak and fast_fall_under < crash:
                     print("DALSIEHO STIHNEM PODLIEZT")
                     if(MiddleAgent.can_reverse(game)):
                         print("MOZEM REVERSE")
                         return DinoMove.DOWN_LEFT
                     return DinoMove.DOWN
-                elif fast_fall + jump_over < crash - 5:
+                elif fast_fall + jump_over < crash:
                     print("STIHAM DOLE HORE")
                     if(MiddleAgent.can_reverse(game)):
                         print("MOZEM REVERSE")
@@ -235,12 +237,6 @@ class MiddleAgent(Agent):
                     else:
                         print("NESTIHAM IST DOLE A SOM POD NIM TAK IDEM HORE DOLAVA")
                         return DinoMove.UP_LEFT
-                
-                # if o.type in can_sneak and fast_fall_under > crash:
-                #     print("IDEM DOLUUUUU")
-                #     return DinoMove.DOWN
-                # print("PRED PREKAZKOU")
-                # return DinoMove.RIGHT
                         
             elif dino.state == J:
                 print("JUMPING RIGHT")
@@ -248,64 +244,6 @@ class MiddleAgent(Agent):
             
             print("OTHERWISE")
             return DinoMove.NO_MOVE
-            
-
-            return DinoMove.UP
-            if dino.state != DinoState.JUMPING and o.type in can_sneak:
-                down_move = down_move if down_move == DinoMove.DOWN_LEFT and MiddleAgent.can_reverse(game) else (down_move if down_move == DinoMove.DOWN_RIGHT else DinoMove.DOWN)
-                print(f"PODLIEZAM : {down_move}")
-                return down_move
-            
-            elif dino.state == DinoState.DUCKING and not MiddleAgent.overlapse(dino, o):
-                print("NACO SA KRCI?")
-                return move_move
-
-            elif dino.state != DinoState.JUMPING and crash == jump_over + 1:
-                print("SKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMM")
-                return DinoMove.UP
-                        
-            elif dino.state == DinoState.JUMPING and MiddleAgent.overlapse(dino, o):
-                print("OVERLAPS")
-                return DinoMove.RIGHT
-            
-            elif dino.state == DinoState.JUMPING and fast_fall + jump_over < crash - 2:
-                print("STIHAM IST DOLE")
-                return DinoMove.DOWN
-
-            elif dino.state == DinoState.JUMPING and (fall >= glide):
-                print("STIHAM")
-                return DinoMove.RIGHT
-
-            elif dino.state == DinoState.JUMPING and (0 <= crash <= jump_over + 1):
-                print("RIGHT VO VZDUCHU - NO MOVE/UP")
-                return DinoMove.UP
-            
-            elif dino.state == DinoState.JUMPING and MiddleAgent.can_reverse(game):
-                print("LEFT")
-                return DinoMove.DOWN_LEFT
-            
-            elif dino.state == DinoState.JUMPING and jump_over > crash:
-                print("SKUS UP_LEFT")
-                return DinoMove.UP_LEFT
-            
-            elif dino.state == DinoState.JUMPING and fast_fall + jump_over < crash:
-                print("JUST DOWN")
-                return DinoMove.DOWN
-            
-            elif dino.state != DinoState.JUMPING and MiddleAgent.can_reverse(game):
-                print("MOZE IST DOLAVA")
-                return DinoMove.NO_MOVE
-                # return move_move
-            
-            elif dino.state != DinoState.DUCKING:
-                print("move move")
-                return DinoMove.NO_MOVE
-                # return move_move
-            
-            else:
-                print(f"ELSE?? {10}")
-                return DinoMove.NO_MOVE
-
 
 
 
