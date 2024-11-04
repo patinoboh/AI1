@@ -69,16 +69,29 @@ class SokobanProblem(HeuristicProblem):
         self, state: Union[Board, StateMinimal], action: Action
     ) -> Union[Board, StateMinimal]:
         # Your implementation goes here.
+        new_state = state.clone()
         raise NotImplementedError
 
     def is_goal(self, state: Union[Board, StateMinimal]) -> bool:
         # Your implementation goes here.
-        raise NotImplementedError
+        return state.is_victory()
 
     def cost(self, state: Union[Board, StateMinimal], action: Action) -> float:
         # Your implementation goes here.
-        raise NotImplementedError
+        return 1
 
     def estimate(self, state: Union[Board, StateMinimal]) -> float:
         # Your implementation goes here.
+        # state.width
+        # state.height
+
+        # graph search, heuristika musí byť monotónna
+        
+        for x in range(state.width):
+            for y in range(state.height):
+                tile = state.tile(x,y)
+                ETile.is_box(tile)
+                ETile.is_sokoban()
+
+    
         raise NotImplementedError
