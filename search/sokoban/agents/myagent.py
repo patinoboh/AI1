@@ -63,6 +63,9 @@ class SokobanProblem(HeuristicProblem):
 
     def actions(self, state: Union[Board, StateMinimal]) -> List[Action]:
         # Your implementation goes here.
+
+        # ask if the new box position is not a dead square
+
         raise NotImplementedError
 
     def result(
@@ -86,7 +89,7 @@ class SokobanProblem(HeuristicProblem):
         # state.height
 
         # graph search, heuristika musí byť monotónna
-        
+
         for x in range(state.width):
             for y in range(state.height):
                 tile = state.tile(x,y)
