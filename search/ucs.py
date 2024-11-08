@@ -2,6 +2,8 @@
 from search_templates import Problem, Solution
 from typing import Optional
 
+from queue import PriorityQueue
+
 
 def ucs(prob: Problem) -> Optional[Solution]:
     """Return Solution of the problem solved by UCS search."""
@@ -10,19 +12,21 @@ def ucs(prob: Problem) -> Optional[Solution]:
     # graph search = no repeated state
     # tree search = repeated state
     
-    Q = [(prob.initial_state(), [])]
-    visited = [prob.initial_state()]
-    actions = []
+    Q = PriorityQueue()
+    Q.put((0, (prob.initial_state(), []) ))
+    visited = []
 
-    while Q:
-        state, actions = Q.pop(0)
+    while not Q.empty():
+        total_cost, (state, actions) = Q.get()
+        visited.append(state)        
         for a in prob.actions(state):
-            new_state = prob.result(state, a)            
-            if(prob.is_goal(new_state)):
-                return Solution(actions.append(a), new_state,len(actions) + 1)
+            new_state = prob.result(state, a)
+            cost = prob.cost(state, a)
+            if prob.is_goal(new_state):
+                return Solution(actions.append(a), new_state, total_cost + cost)
             
-            if new_state not in visited:
-                Q.append((new_state, actions + [a]))
+            elif state not in visited:
+                Q.put((total_cost + cost, (new_state, actions+[a]) ))
                 visited.append(new_state)
     return None
     # return Solution([actions leading to goal], goal_state, path_cost)
