@@ -5,6 +5,12 @@
 - [**Recodex link**](https://recodex.mff.cuni.cz/app/group/cc10b852-2079-47af-83cf-dc75b60e39c4/assignments)
 - [**Git**](https://github.com/patinoboh/ai1)
 
+## Venv
+
+`source /home/patrik/Documents/ai1/AI1/ai1-venv/bin/activate`
+
+## About
+
 This repository contains practical tasks for the [Artificial Intelligence 1](http://ktiml.mff.cuni.cz/~bartak/ui/) course, that is based on book by Russel and Norvig [Artificial Intellignece: A Modern Approach, 4th Edition](https://www.pearson.com/us/higher-education/program/Russell-Artificial-Intelligence-A-Modern-Approach-4th-Edition/PGM1263338.html). Tasks are designed to review AI algorithms and use them to play games.
 
 ---
