@@ -18,18 +18,18 @@ def ucs(prob: Problem) -> Optional[Solution]:
     visited = set()
 
     while not Q.empty():
-        total_cost, _, state, actions = Q.get()
+        path_cost, _, state, actions = Q.get()
 
         if prob.is_goal(state):
-            return Solution(actions, state, total_cost)
+            return Solution(actions, state, path_cost)
         
         if state not in visited:
             visited.add(state)
             for a in prob.actions(state):
                 new_state = prob.result(state, a)
+                action_cost = prob.cost(state, a)
                 if new_state not in visited:
                     count += 1
-                    cost = prob.cost(state, a)
-                    Q.put( (total_cost + cost, count, new_state, actions + [a] ) )
+                    Q.put( (path_cost + action_cost, count, new_state, actions + [a] ) )
     return None
     # return Solution([actions leading to goal], goal_state, path_cost)
