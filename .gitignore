@@ -3,3 +3,4 @@ ai1-venv/**
 **/*delete*
 **/slides/*
 *.csv
+**/params.txt
