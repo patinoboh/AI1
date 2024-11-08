@@ -5,7 +5,88 @@ from game.agent import Agent
 from itertools import accumulate
 from math import ceil, floor
 
+# parser.add_argument("--deleno", default=1.95, type=float, help="Deleno.")
+# parser.add_argument("--max_v_pred_prekazkou", default=5, type=float, help="Max v pred prekazkou.")
+# parser.add_argument("--max_usek", default=3, type=float, help="Max usek.")
+# parser.add_argument("--krat_v_menej", default=3, type=float, help="Krat v menej.")
+# parser.add_argument("--const_v_menej", default=-6, type=float, help="Const v menej.")
+# parser.add_argument("--const_vo_viac", default=-4, type=float, help="Const vo viac.")
+# parser.add_argument("--krat_vo_viac", default=3, type=float, help="Krat vo viac.")
+# parser.add_argument("--speed_thresshold", default=13, type=float, help="Speed thresshold.")
+# parser.add_argument("--max_minus", default=-2, type=float, help="Max minus.")
+
+g_deleno = 1.95
+g_max_v_pred_prekazkou = 5
+g_max_usek = 3
+g_krat_v_menej = 3
+g_const_v_menej = -6
+g_const_vo_viac = -4
+g_krat_vo_viac = 3
+g_speed_thresshold = 13
+g_max_minus = -2
+
+
+def set_params(deleno, max_v_pred_prekazkou, max_usek, krat_v_menej, const_v_menej, const_vo_viac, krat_vo_viac, speed_thresshold, max_minus):
+    global g_deleno, g_max_v_pred_prekazkou, g_max_usek, g_krat_v_menej, g_const_v_menej, g_const_vo_viac, g_krat_vo_viac, g_speed_thresshold, g_max_minus
+    g_deleno = deleno
+    g_max_v_pred_prekazkou = max_v_pred_prekazkou
+    g_max_usek = max_usek
+    g_krat_v_menej = krat_v_menej
+    g_const_v_menej = const_v_menej
+    g_const_vo_viac = const_vo_viac
+    g_krat_vo_viac = krat_vo_viac
+    g_speed_thresshold = speed_thresshold
+    g_max_minus = max_minus
+
+def print_params():
+    global g_deleno, g_max_v_pred_prekazkou, g_max_usek, g_krat_v_menej, g_const_v_menej, g_const_vo_viac, g_krat_vo_viac, g_speed_thresshold, g_max_minus
+    print("PRINTING PARAMS FROM PYTHON MIDDLE AGENT")
+    print(f"deleno={g_deleno}")
+    print(f"max_v_pred_prekazkou={g_max_v_pred_prekazkou}")
+    print(f"max_usek={g_max_usek}")
+    print(f"krat_v_menej={g_krat_v_menej}")
+    print(f"const_v_menej={g_const_v_menej}")
+    print(f"const_vo_viac={g_const_vo_viac}")
+    print(f"krat_vo_viac={g_krat_vo_viac}")
+    print(f"speed_thresshold={g_speed_thresshold}")
+    print(f"max_minus={g_max_minus}")
+
+# 1.9, 2, 1, 2.0, -6, -5, 2.8000000000000007, 8.700000000000001, -3,3413.37
+
+def read_params(path):
+    global g_deleno, g_max_v_pred_prekazkou, g_max_usek, g_krat_v_menej, g_const_v_menej, g_const_vo_viac, g_krat_vo_viac, g_speed_thresshold, g_max_minus
+    with open(path, "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            key, value = line.split("=")
+            if key == "deleno":
+                g_deleno = float(value)
+            elif key == "max_v_pred_prekazkou":
+                g_max_v_pred_prekazkou = float(value)
+            elif key == "max_usek":
+                g_max_usek = float(value)
+            elif key == "krat_v_menej":
+                g_krat_v_menej = float(value)
+            elif key == "const_v_menej":
+                g_const_v_menej = float(value)
+            elif key == "const_vo_viac":
+                g_const_vo_viac = float(value)
+            elif key == "krat_vo_viac":
+                g_krat_vo_viac = float(value)
+            elif key == "speed_thresshold":
+                g_speed_thresshold = float(value)
+            elif key == "max_minus":
+                g_max_minus = float(value)
+    # print_params()
+
+
+
+
 class MiddleAgent(Agent):
+    def __init__(self):
+        print("INIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIT")
+        # read_params("/home/patrik/Documents/ai1/AI1/dino/params.txt")
+
     def write_object(o, name=None):
         name = name if name else o.type
         # print(f"{name} (x,y)=({o.rect.x},{o.rect.y}) (w,h)=({o.rect.width},{o.rect.height}) speed={o.speed}")
@@ -53,6 +134,7 @@ class MiddleAgent(Agent):
 
     @staticmethod
     def get_move(game: Game) -> DinoMove:
+        global g_deleno, g_max_v_pred_prekazkou, g_max_usek, g_krat_v_menej, g_const_v_menej, g_const_vo_viac, g_krat_vo_viac, g_speed_thresshold, g_max_minus
         # print()
         
         dino = game.dino
@@ -161,9 +243,13 @@ class MiddleAgent(Agent):
             
             elif dino.state != J and jump_over in range(crash, crash + 4):
                 # print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUP")
+                MiddleAgent.write_dino(game)
                 return DinoMove.UP
             
             elif dino.state != J:
+                # print("VRACIAM BALANCE MOVE?")
+                MiddleAgent.write_dino(game)
+
                 return balance_move
 
             elif dino.state == J and MiddleAgent.overlapse(dino, o) and fast_fall_on > get_behind_right:
@@ -173,19 +259,28 @@ class MiddleAgent(Agent):
                 start = o_x - d_w
                 end = o_x + o_w + d_w
                 l = end - start
-                k2 = 3
-                k1 = 0 if not next_o else k2 - (l - abs(d_x - start )) / l * k2 # predtym *5* alebo 6
-                k1 = ceil(k1 * 3) - 6 if game.speed < 13 else ceil(k1 * 3) - 4
-                # print(f"TESNE TESNE {k1}")
+                
+                max_usek = g_max_usek
+                krat_v_menej = g_krat_v_menej
+                const_v_menej = g_const_v_menej
+                const_vo_viac = g_const_vo_viac
+                krat_vo_viac = g_krat_vo_viac
+                speed_thresshold = g_speed_thresshold
+                max_minus = g_max_minus
+
+                konstanta = 0 if not next_o else max_usek - (l - abs(d_x - start )) / l * max_usek # predtym *5* alebo 6
+                konstanta = ceil(konstanta * krat_v_menej) + const_v_menej if game.speed < 13 else ceil(konstanta * krat_vo_viac) + const_vo_viac
+                konstanta = max(max_minus, konstanta) if game.speed < 13 else konstanta
+                # print(f"TESNE TESNE {konstanta}")
 
                 if not next_o:
                     # print("NIKTO DALSI, IDEM DOLE")
                     return DinoMove.DOWN_RIGHT
-                elif next_o.type in can_sneak and fast_fall_under_next < crash_next + k1:
+                elif next_o.type in can_sneak and fast_fall_under_next < crash_next + konstanta:
                     # print(f"DALSIEHO STIHNEM PODLIEZT")
                     return DinoMove.DOWN_RIGHT
 
-                elif fast_fall + jump_over_next < crash_next + k1:
+                elif fast_fall + jump_over_next < crash_next + konstanta:
                     # print(f"STIHAM DOLE HORE")
                     return DinoMove.DOWN_RIGHT
                 else:
@@ -208,7 +303,12 @@ class MiddleAgent(Agent):
             elif dino.state == J:
 
                 k = o_x - d_x - d_h
-                k = min(game.speed / 2.5, 5)
+                
+                deleno = g_deleno
+                max_v_pred_prekazkou = g_max_v_pred_prekazkou
+
+                k = min(game.speed / deleno, max_v_pred_prekazkou)
+
                 # print(f"PRED PREKAZKOU {k}")
 
                 if o.type in can_sneak and fast_fall_under < crash + k:
@@ -256,3 +356,7 @@ class MiddleAgent(Agent):
         # print("NEVRACIAM NIC")
         return DinoMove.NO_MOVE
         # return down_move
+
+
+if __name__ != "__main__":    
+    read_params("/home/patrik/Documents/ai1/AI1/dino/params.txt")

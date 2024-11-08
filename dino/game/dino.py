@@ -453,3 +453,6 @@ class Game:
             self.speed += Game.SPEED_INC
             self.previous_obstacle += 1
             self.spawn += Game.SPAWN_INC
+
+        # print(f"GS {self.speed:.2f} ({self.dino.x:.2f},{self.dino.y:.2f})")
+

@@ -40,10 +40,17 @@ class Dummy_Agent(Agent):
 
         # Dummy implementation:
         x = game.dino.x
+        print(f"GS : {game.speed} DX : {x} DY : {game.dino.y} NOHY {game.dino.body.y} NOHY Y {game.dino.body.y + game.dino.body.height} state={game.dino.state}")
+        
+
+        if game.dino.y <= 100:
+            return DinoMove.DOWN
+        else:
+            return DinoMove.UP
+        
         for o in game.obstacles:
-            if o.rect.x > x and o.rect.coords.x < x + 120 + 5 * (
-                game.speed - 5
-            ):
+            # if o.rect.x > x and o.rect.coords.x < x + 120 + 5 * (game.speed - 5):
+            if x < o.rect.coords.x < x + 120 + 5 * (game.speed - 5):
                 if Dummy_Agent.verbose:
                     print("jumping right")
                 return DinoMove.UP_RIGHT

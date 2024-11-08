@@ -61,7 +61,7 @@ def get_parser() -> ArgumentParser:
     )
     parser.add_argument(
         "--delay",
-        default=500,
+        default=500,    
         type=int,
         help="Time interval before restarting the game when the dino crashes.",
     )
@@ -72,6 +72,28 @@ def get_parser() -> ArgumentParser:
         type=int,
         help="Frames per second. (only for visualization)",
     )
+
+    # max_usek = 3
+    # krat_v_menej = 3
+    # const_v_menej = - 6
+    # const_vo_viac = - 4
+    # krat_vo_viac = 3
+    # speed_thresshold = 13
+    # max_minus = -2
+    # deleno = 1.95
+    # max_v_pred_prekazkou = 5
+
+    parser.add_argument("--deleno", default=1.95, type=float, help="Deleno.")
+    parser.add_argument("--max_v_pred_prekazkou", default=5, type=float, help="Max v pred prekazkou.")
+    parser.add_argument("--max_usek", default=3, type=float, help="Max usek.")
+    parser.add_argument("--krat_v_menej", default=3, type=float, help="Krat v menej.")
+    parser.add_argument("--const_v_menej", default=-6, type=float, help="Const v menej.")
+    parser.add_argument("--const_vo_viac", default=-4, type=float, help="Const vo viac.")
+    parser.add_argument("--krat_vo_viac", default=3, type=float, help="Krat vo viac.")
+    parser.add_argument("--speed_thresshold", default=13, type=float, help="Speed thresshold.")
+    parser.add_argument("--max_minus", default=-2, type=float, help="Max minus.")
+
+
     return parser
 
 
@@ -176,9 +198,10 @@ def sim(agent: Agent, args: Namespace) -> float:
             )
 
     avg_score = score / args.sim
-    print("Averages from {} games:".format(args.sim))
-    print("  score: {:.1f}".format(avg_score))
-    print("  time: {:.3f} ms/tick".format(total_time / total_ticks * 1000))
+    # print("Averages from {} games:".format(args.sim))
+    # print("  score: {:.1f}".format(avg_score))
+    print(avg_score)
+    # print("  time: {:.3f} ms/tick".format(total_time / total_ticks * 1000))
     return avg_score
 
 
