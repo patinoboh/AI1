@@ -13,20 +13,22 @@ def ucs(prob: Problem) -> Optional[Solution]:
     # tree search = repeated state
     
     Q = PriorityQueue()
-    Q.put((0, (prob.initial_state(), []) ))
+    count = 0
+    Q.put((0, count, prob.initial_state(), []))
     visited = []
 
     while not Q.empty():
-        total_cost, (state, actions) = Q.get()
-        visited.append(state)        
-        for a in prob.actions(state):
-            new_state = prob.result(state, a)
-            cost = prob.cost(state, a)
-            if prob.is_goal(new_state):
-                return Solution(actions.append(a), new_state, total_cost + cost)
-            
-            elif state not in visited:
-                Q.put((total_cost + cost, (new_state, actions+[a]) ))
-                visited.append(new_state)
+        total_cost, _, state, actions = Q.get()
+        
+        if prob.is_goal(state):
+            return Solution(actions, state, total_cost)
+        
+        elif state not in visited:
+            visited.append(state)
+            for a in prob.actions(state):
+                count += 1
+                new_state = prob.result(state,a)
+                cost = prob.cost(state, a)
+                Q.put( (total_cost + cost, count, new_state, actions + [a]) )
     return None
     # return Solution([actions leading to goal], goal_state, path_cost)
