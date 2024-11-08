@@ -15,20 +15,21 @@ def ucs(prob: Problem) -> Optional[Solution]:
     Q = PriorityQueue()
     count = 0
     Q.put((0, count, prob.initial_state(), []))
-    visited = []
+    visited = set()
 
     while not Q.empty():
         total_cost, _, state, actions = Q.get()
-        
+
         if prob.is_goal(state):
             return Solution(actions, state, total_cost)
         
-        elif state not in visited:
-            visited.append(state)
+        if state not in visited:
+            visited.add(state)
             for a in prob.actions(state):
-                count += 1
-                new_state = prob.result(state,a)
-                cost = prob.cost(state, a)
-                Q.put( (total_cost + cost, count, new_state, actions + [a]) )
+                new_state = prob.result(state, a)
+                if new_state not in visited:
+                    count += 1
+                    cost = prob.cost(state, a)
+                    Q.put( (total_cost + cost, count, new_state, actions + [a] ) )
     return None
     # return Solution([actions leading to goal], goal_state, path_cost)
