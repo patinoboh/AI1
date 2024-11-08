@@ -54,6 +54,7 @@ class SokobanProblem(HeuristicProblem):
     def __init__(self) -> None:
         # Your implementation goes here.
         # Hint: __init__(self, initial_board) -> None:
+        
         raise NotImplementedError
 
     def initial_state(self) -> Union[Board, StateMinimal]:
