@@ -2,7 +2,20 @@
 from search_templates import Problem, Solution
 from typing import Optional
 
-from queue import PriorityQueue
+from dataclasses import dataclass
+import heapq as hq
+
+
+@dataclass
+class Node:
+    path_cost : float
+    count : int
+    state : object
+    old_state : object
+    action : object
+    def __lt__(self, other):
+        return (self.path_cost, self.count) < (other.path_cost, other.count)
+
 
 def retrieve_actions(actions, state):
     result = []
@@ -19,15 +32,19 @@ def ucs(prob: Problem) -> Optional[Solution]:
     # graph search = no repeated state
     # tree search = repeated state
     
-    Q = PriorityQueue()
     count = 0
-    #   path, count,    state,    previous_state,  action
-    Q.put((0, count, prob.initial_state(), None, None))
-    
+    q = [Node(0, count, prob.initial_state(), None, None)]
     visited = {}
 
-    while not Q.empty():
-        path_cost, _, state, old_state, action = Q.get()
+    while q:
+        node = hq.heappop(q)
+        # q = [n for n in q if n.state != node.state]
+        # hq.heapify(q)
+
+        path_cost = node.path_cost
+        state = node.state
+        old_state = node.old_state
+        action = node.action
 
         if prob.is_goal(state):
             visited[state] = (old_state, action)
@@ -38,7 +55,7 @@ def ucs(prob: Problem) -> Optional[Solution]:
             for a in prob.actions(state):
                 new_state = prob.result(state, a)
                 action_cost = prob.cost(state, a)
-                if new_state not in visited:
+                if new_state not in visited:                    
                     count += 1
-                    Q.put( (path_cost + action_cost, count, new_state, state, a ) )
+                    hq.heappush(q, Node(path_cost + action_cost, count, new_state, state, a ) )
     return None
