@@ -4,6 +4,7 @@ from game.pacman import Game, DM, Direction
 from typing import List
 import sys
 from os.path import dirname
+from enum import Enum
 
 # hack for importing from parent package
 sys.path.append(dirname(dirname(dirname(dirname(__file__))))) # TODO change back to 3 dirnames
@@ -12,6 +13,7 @@ from search_templates import *
 from ucs import ucs
 
 
+# i do not use this one
 class PacProblem(Problem):
     def __init__(self, game: Game) -> None:
         self.game: Game = game
@@ -32,6 +34,8 @@ class PacProblem(Problem):
     def cost(self, state: int, action: int) -> float:
         return 1
 
+
+# this is the shit
 class ProblemOdDo(Problem):
     def __init__(self, game, start_pos, end_pos):
         self.game = game
@@ -56,33 +60,62 @@ class ProblemOdDo(Problem):
 
 
 
+class PacManStatus(Enum):
+    DEFAULT = 0
+    BAITING = 1
+    EATING = 0
+
 
 class Patrik(PacManControllerBase):
+    def __init__(self):
+        super()
+        self.status = PacManStatus.DEFAULT
+
 
     def tick(self, game: Game) -> None:
+        pacman = self.game.pac_loc        
+        
+        active_pills = game.get_active_pills_nodes()
+        nearest_pill = game.get_target(pacman, active_pills, True, DM.PATH)
+        active_power_pills = game.get_active_power_pills_nodes()
+        nearest_active_power = game.get_target(pacman, active_power_pills, True, DM.PATH)
+        
         fruit = self.game.fruit_loc
-        pacman = self.game.pac_loc
-        # eating_time = self.game.eating_time()
+        
         ghost_locs = self.game.ghost_locs
-        # ghost_dirs = self.game.ghost_dirs()
-        # edible_times = self.game.edible_times()
+        ghost_dirs = self.game.ghost_dirs()
+        
+        eating_time = self.game.eating_time()
+        edible_times = self.game.edible_times()
 
         print(f"fruit {fruit}")
-        print(f"pacman {pacman}")
         print(f"hore : {self.game.get_neighbor(pacman, Direction.UP)}")
+        print(f"active pills {active_power_pills}")
         # print(f"dole : {self.game.get_neighbor(pacman, Direction.DOWN)}")
         # print(f"dolava : {self.game.get_neighbor(pacman, Direction.LEFT)}")
         # print(f"doprava : {self.game.get_neighbor(pacman, Direction.RIGHT)}")
 
-        active_pills = game.get_active_pills_nodes()
+
+        if self.status == PacManStatus.DEFAULT:
+            print("DEFAULT STATUS")
+            # chod cim blizsie k cukriku a baiti
+
+            
+        elif self.status == PacManStatus.BAITING:
+            print("BAITING STATUS")
+
+
+        elif self.status == PacManStatus.EATING:
+            return
+
         
-        active_power_pills = game.get_active_power_pills_nodes()
         targets = active_pills + active_power_pills
 
 
         print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
 
         kam = active_power_pills[0] if active_power_pills else ghost_locs[0]
+
         mojproblem = ProblemOdDo(self.game, pacman, kam)
         sol = ucs(mojproblem)
         if sol is not None and sol.actions:
