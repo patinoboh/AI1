@@ -67,10 +67,6 @@ class PacManStatus(Enum):
 
 
 class Patrik(PacManControllerBase):
-    def __init__(self):
-        super()
-        self.status = PacManStatus.DEFAULT
-
 
     def tick(self, game: Game) -> None:
         pacman = self.game.pac_loc        
@@ -83,10 +79,10 @@ class Patrik(PacManControllerBase):
         fruit = self.game.fruit_loc
         
         ghost_locs = self.game.ghost_locs
-        ghost_dirs = self.game.ghost_dirs()
+        ghost_dirs = self.game.ghost_dirs
         
-        eating_time = self.game.eating_time()
-        edible_times = self.game.edible_times()
+        eating_time = self.game.eating_time
+        edible_times = self.game.edible_times
 
         print(f"fruit {fruit}")
         print(f"hore : {self.game.get_neighbor(pacman, Direction.UP)}")
@@ -95,17 +91,18 @@ class Patrik(PacManControllerBase):
         # print(f"dolava : {self.game.get_neighbor(pacman, Direction.LEFT)}")
         # print(f"doprava : {self.game.get_neighbor(pacman, Direction.RIGHT)}")
 
+        status = PacManStatus.DEFAULT
 
-        if self.status == PacManStatus.DEFAULT:
+        if status == PacManStatus.DEFAULT:
             print("DEFAULT STATUS")
             # chod cim blizsie k cukriku a baiti
 
             
-        elif self.status == PacManStatus.BAITING:
+        elif status == PacManStatus.BAITING:
             print("BAITING STATUS")
 
 
-        elif self.status == PacManStatus.EATING:
+        elif status == PacManStatus.EATING:
             return
 
         
