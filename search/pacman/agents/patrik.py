@@ -55,7 +55,17 @@ class ProblemOdDo(Problem):
         return state == self.end
     
     def cost(self, state, action):
-        return 1
+
+        if state in self.game.ghost_locs:
+            return 10000
+        else:
+            return 1
+        
+        # min_vzd = sys.maxsize
+        # for ghost in self.game.ghost_dirs:
+        #     min_vzd = min(self.game.get_path_distance(state, ghost), min_vzd)
+
+        # return 1 if min_vzd > 12 else 20
 
 
 
@@ -71,7 +81,6 @@ class Patrik(PacManControllerBase):
     def ghosts_to_eat(self):
         return [self.game.get_ghost_loc(i) for i in range(4) if self.game.is_edible(i)]
     
-    # def get_
     def action_from_problem(self, problem):
         sol = ucs(problem)
         if sol is not None and sol.actions:
@@ -94,7 +103,15 @@ class Patrik(PacManControllerBase):
         else:
             return Direction.NONE
         
-        
+    def do_not_be_dumb(self, ghosts, action, balls):
+        # DO NOT LET PACMAN CRASH INTO UNEDIBLE MONSTER
+
+        for distance,ghost_index in ghosts:
+            # if not self.game.is_edible(ghost_index) and distance < balls and self.game.ghost_dirs[ghost_index] != action:
+            if not self.game.is_edible(ghost_index) and distance < balls and self.game.ghost_dirs[ghost_index] == self.get_opposite_dir(action):
+                action = self.get_opposite_dir(action)
+                self.pacman.set(action)
+                return
 
     def tick(self, game: Game) -> None:
         pacman = self.game.pac_loc        
@@ -109,6 +126,7 @@ class Patrik(PacManControllerBase):
         ghost_locs = self.game.ghost_locs
         ghost_distances = [self.game.get_path_distance(pacman, ghost_locs[i]) for i in range(4)]
         ghost_distances = [d if d != -1 else sys.maxsize for d in ghost_distances]
+        ghosts = sorted(list(zip(ghost_distances, range(4))))
         nearest_ghost = ghost_locs[ghost_distances.index(min(ghost_distances))]
 
         ghost_dirs = self.game.ghost_dirs
@@ -122,8 +140,10 @@ class Patrik(PacManControllerBase):
         self.pacman.set(Direction.NONE)
 
         ghosts_to_eat = self.ghosts_to_eat()
+
         baiting_distance = 2
-        balls_size = 6
+        baiting_balls = 8
+        balls = 10
         
         if not ghosts_to_eat and not active_power_pills:
             status = PacmanStatus.END_GAME
@@ -134,29 +154,40 @@ class Patrik(PacManControllerBase):
         elif ghosts_to_eat:
             status = PacmanStatus.EATING
 
-        print(status)
+        # print(status)
 
         if status == PacmanStatus.DEFAULT: # TODO
-            self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_active_power))
+            action = self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_active_power))
+            
+            # DO NOT LET PACMAN CRASH INTO UNEDIBLE MOSTERS
+            return self.do_not_be_dumb(ghosts, action, balls)
 
         elif status == PacmanStatus.BAITING: # OK
             dir_to_power = self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_active_power))
             opposite_dir = self.get_opposite_dir(dir_to_power)
             
-            if self.game.get_path_distance(pacman, nearest_ghost) <= balls_size:
+            if self.game.get_path_distance(pacman, nearest_ghost) <= baiting_balls:
                 self.pacman.set(dir_to_power)
             else:
                 self.pacman.set(opposite_dir)
-        elif status == PacmanStatus.EATING: # TODO
-            for i,ghost in enumerate(ghost_locs):
-                if self.game.is_edible(i):
-                    action = self.action_from_problem( ProblemOdDo(self.game, pacman, ghost) )
-                    return
-                
 
-                
-            # self.action_from_problem(ProblemOdDo(self.game, pacman, ghosts_to_eat[0]))
+        elif status == PacmanStatus.EATING: # TODO
+            for distance, ghost_index in ghosts:
+                if(self.game.is_edible(ghost_index)):
+                    action = self.action_from_problem(ProblemOdDo(self.game, pacman, self.game.ghost_locs[ghost_index]))
+                    break
+
+            # action = self.action_from_problem(ProblemOdDo(self.game, pacman, ghosts_to_eat[0]))
+            
+            # DO NOT LET PACMAN CRASH INTO UNEDIBLE MOSTERS
+            return self.do_not_be_dumb(ghosts, action, balls)
 
         elif status == PacmanStatus.END_GAME: # TODO
-            print("ENDGAME")
+            action = self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_pill))
+            
+            # DO NOT LET PACMAN CRASH INTO UNEDIBLE MOSTERS
+            return self.do_not_be_dumb(ghosts, action, balls)
+
+
+            # print("ENDGAME")
 
