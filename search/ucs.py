@@ -34,12 +34,12 @@ def ucs(prob: Problem) -> Optional[Solution]:
     
     count = 0
     q = [Node(0, count, prob.initial_state(), None, None)]
+    q_set = set([prob.initial_state()])
     visited = {}
 
     while q:
         node = hq.heappop(q)
-        # q = [n for n in q if n.state != node.state]
-        # hq.heapify(q)
+        q_set.remove(node.state)
 
         path_cost = node.path_cost
         state = node.state
@@ -55,7 +55,18 @@ def ucs(prob: Problem) -> Optional[Solution]:
             for a in prob.actions(state):
                 new_state = prob.result(state, a)
                 action_cost = prob.cost(state, a)
-                if new_state not in visited:                    
+                if new_state not in visited:
                     count += 1
-                    hq.heappush(q, Node(path_cost + action_cost, count, new_state, state, a ) )
+                    new_node = Node(path_cost + action_cost, count, new_state, state, a)
+                    if(new_state not in q_set):
+                        hq.heappush(q, new_node)
+                    else:
+                        q = [min(n, new_node) if n.state == new_state else n for n in q] # change the old node to the new node
+                        hq.heapify(q)
+                    q_set.add(new_state)
+
+
+
+                    
+
     return None
