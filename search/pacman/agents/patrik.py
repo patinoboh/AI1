@@ -60,15 +60,27 @@ class ProblemOdDo(Problem):
 
 
 
-class PacManStatus(Enum):
+class PacmanStatus(Enum):
     DEFAULT = 0
     BAITING = 1
     EATING = 2
+    END_GAME = 3
 
 
 class Patrik(PacManControllerBase):
     def ghosts_to_eat(self):
         return [self.game.get_ghost_loc(i) for i in range(4) if self.game.is_edible(i)]
+    
+    # def get_
+    def action_from_problem(self, problem):
+        sol = ucs(problem)
+        if sol is not None and sol.actions:
+            self.pacman.set(sol.actions[0])
+            return sol.actions[0]
+        else:
+            self.pacman.set(Direction.NONE)
+        return Direction.NONE
+
     
     def get_opposite_dir(self, direction):
         if direction == Direction.UP:
@@ -79,6 +91,9 @@ class Patrik(PacManControllerBase):
             return Direction.RIGHT
         elif direction == Direction.RIGHT:
             return Direction.LEFT
+        else:
+            return Direction.NONE
+        
         
 
     def tick(self, game: Game) -> None:
@@ -93,8 +108,7 @@ class Patrik(PacManControllerBase):
         
         ghost_locs = self.game.ghost_locs
         ghost_distances = [self.game.get_path_distance(pacman, ghost_locs[i]) for i in range(4)]
-        ghost_distances = [d if d != -1 else 10000 for d in ghost_distances]
-        # print(ghost_distances)
+        ghost_distances = [d if d != -1 else sys.maxsize for d in ghost_distances]
         nearest_ghost = ghost_locs[ghost_distances.index(min(ghost_distances))]
 
         ghost_dirs = self.game.ghost_dirs
@@ -102,74 +116,47 @@ class Patrik(PacManControllerBase):
         eating_time = self.game.eating_time
         edible_times = self.game.edible_times
 
-        
-        # if active_power_pills
-        # print("TOTO")
-        # # print(self.game.get_path_distance(pacman, nearest_active_power))
-        # # print(self.game.get_path_distance(pacman, nearest_ghost))
-
+        action = None
+        problem = None
+        status = PacmanStatus.DEFAULT
         self.pacman.set(Direction.NONE)
+
         ghosts_to_eat = self.ghosts_to_eat()
-        # print(f"ghost to eat {ghosts_to_eat}")
+        baiting_distance = 2
+        balls_size = 6
         
-        status = PacManStatus.DEFAULT
         if not ghosts_to_eat and not active_power_pills:
-            status = PacManStatus.DEFAULT
-        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) > 3:
-            status = PacManStatus.DEFAULT
-        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) <= 2:
-            status = PacManStatus.BAITING
+            status = PacmanStatus.END_GAME
+        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) > baiting_distance:
+            status = PacmanStatus.DEFAULT
+        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) <= baiting_distance:
+            status = PacmanStatus.BAITING
         elif ghosts_to_eat:
-            status = PacManStatus.EATING
+            status = PacmanStatus.EATING
 
-        # print(status)
+        print(status)
 
-        if status == PacManStatus.DEFAULT:
-            # chod cim blizsie k cukriku a baiti
-            self.pacman.set(ucs(ProblemOdDo(self.game, pacman, nearest_active_power)).actions[0])
-        elif status == PacManStatus.BAITING:
-            # print(f"\n nearest ghost \n {self.game.get_path_distance(pacman, nearest_ghost)} \n")
-            dir_to_power = ucs(ProblemOdDo(self.game, pacman, nearest_active_power)).actions[0]
+        if status == PacmanStatus.DEFAULT: # TODO
+            self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_active_power))
+
+        elif status == PacmanStatus.BAITING: # OK
+            dir_to_power = self.action_from_problem(ProblemOdDo(self.game, pacman, nearest_active_power))
             opposite_dir = self.get_opposite_dir(dir_to_power)
-            if self.game.get_path_distance(pacman, nearest_ghost) <= 5:
+            
+            if self.game.get_path_distance(pacman, nearest_ghost) <= balls_size:
                 self.pacman.set(dir_to_power)
             else:
                 self.pacman.set(opposite_dir)
-        elif status == PacManStatus.EATING:
-            self.pacman.set(ucs(ProblemOdDo(self.game, pacman, ghosts_to_eat[0])).actions[0])
-        return
-
-            
-        targets = active_pills + active_power_pills
-
-
-        # print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
-
-        kam = active_power_pills[0] if active_power_pills else ghost_locs[0]
-
-        mojproblem = ProblemOdDo(self.game, pacman, kam)
-        sol = ucs(mojproblem)
-        if sol is not None and sol.actions:
-            # print(f"JO : {sol.actions[0]}")
-            self.pacman.set(sol.actions[0])
-
-        # # print(f"Chod takto : \n {ucs(mojproblem).actions}")
-
-        # # print(f"eating_time {eating_time}")
-        # # print(f"ghost_locs {ghost_locs}")
-        # # print(f"ghost_dirs {ghost_dirs}")
-        # # print(f"edible_times {edible_times}")
-
-
-
-
-        # ghost_locs = self.game.ghost_locs()
-        prob = PacProblem(game)
-        sol = ucs(prob)
+        elif status == PacmanStatus.EATING: # TODO
+            for i,ghost in enumerate(ghost_locs):
+                if self.game.is_edible(i):
+                    action = self.action_from_problem( ProblemOdDo(self.game, pacman, ghost) )
+                    return
                 
-        if sol is None or not sol.actions:
-            pass
-            # if self.verbose:
-            #     # print("No path found.", file=sys.stderr)
-        else:
-            self.pacman.set(sol.actions[0])
+
+                
+            # self.action_from_problem(ProblemOdDo(self.game, pacman, ghosts_to_eat[0]))
+
+        elif status == PacmanStatus.END_GAME: # TODO
+            print("ENDGAME")
+
