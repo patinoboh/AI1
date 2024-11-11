@@ -82,7 +82,8 @@ class Patrik(PacManControllerBase):
 
         print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
 
-        mojproblem = ProblemOdDo(self.game, pacman, ghost_locs[0])
+        kam = active_power_pills[0] if active_power_pills else ghost_locs[0]
+        mojproblem = ProblemOdDo(self.game, pacman, kam)
         sol = ucs(mojproblem)
         if sol is not None and sol.actions:
             print(f"JO : {sol.actions[0]}")
