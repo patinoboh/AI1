@@ -63,10 +63,23 @@ class ProblemOdDo(Problem):
 class PacManStatus(Enum):
     DEFAULT = 0
     BAITING = 1
-    EATING = 0
+    EATING = 2
 
 
 class Patrik(PacManControllerBase):
+    def ghosts_to_eat(self):
+        return [self.game.get_ghost_loc(i) for i in range(4) if self.game.is_edible(i)]
+    
+    def get_opposite_dir(self, direction):
+        if direction == Direction.UP:
+            return Direction.DOWN
+        elif direction == Direction.DOWN:
+            return Direction.UP
+        elif direction == Direction.LEFT:
+            return Direction.RIGHT
+        elif direction == Direction.RIGHT:
+            return Direction.LEFT
+        
 
     def tick(self, game: Game) -> None:
         pacman = self.game.pac_loc        
@@ -79,52 +92,73 @@ class Patrik(PacManControllerBase):
         fruit = self.game.fruit_loc
         
         ghost_locs = self.game.ghost_locs
+        ghost_distances = [self.game.get_path_distance(pacman, ghost_locs[i]) for i in range(4)]
+        ghost_distances = [d if d != -1 else 10000 for d in ghost_distances]
+        # print(ghost_distances)
+        nearest_ghost = ghost_locs[ghost_distances.index(min(ghost_distances))]
+
         ghost_dirs = self.game.ghost_dirs
         
         eating_time = self.game.eating_time
         edible_times = self.game.edible_times
 
-        print(f"fruit {fruit}")
-        print(f"hore : {self.game.get_neighbor(pacman, Direction.UP)}")
-        print(f"active pills {active_power_pills}")
-        # print(f"dole : {self.game.get_neighbor(pacman, Direction.DOWN)}")
-        # print(f"dolava : {self.game.get_neighbor(pacman, Direction.LEFT)}")
-        # print(f"doprava : {self.game.get_neighbor(pacman, Direction.RIGHT)}")
+        
+        # if active_power_pills
+        # print("TOTO")
+        # # print(self.game.get_path_distance(pacman, nearest_active_power))
+        # # print(self.game.get_path_distance(pacman, nearest_ghost))
 
+        self.pacman.set(Direction.NONE)
+        ghosts_to_eat = self.ghosts_to_eat()
+        # print(f"ghost to eat {ghosts_to_eat}")
+        
         status = PacManStatus.DEFAULT
+        if not ghosts_to_eat and not active_power_pills:
+            status = PacManStatus.DEFAULT
+        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) > 3:
+            status = PacManStatus.DEFAULT
+        elif not ghosts_to_eat and self.game.get_path_distance(pacman, nearest_active_power) <= 2:
+            status = PacManStatus.BAITING
+        elif ghosts_to_eat:
+            status = PacManStatus.EATING
+
+        # print(status)
 
         if status == PacManStatus.DEFAULT:
-            print("DEFAULT STATUS")
             # chod cim blizsie k cukriku a baiti
+            self.pacman.set(ucs(ProblemOdDo(self.game, pacman, nearest_active_power)).actions[0])
+        elif status == PacManStatus.BAITING:
+            # print(f"\n nearest ghost \n {self.game.get_path_distance(pacman, nearest_ghost)} \n")
+            dir_to_power = ucs(ProblemOdDo(self.game, pacman, nearest_active_power)).actions[0]
+            opposite_dir = self.get_opposite_dir(dir_to_power)
+            if self.game.get_path_distance(pacman, nearest_ghost) <= 5:
+                self.pacman.set(dir_to_power)
+            else:
+                self.pacman.set(opposite_dir)
+        elif status == PacManStatus.EATING:
+            self.pacman.set(ucs(ProblemOdDo(self.game, pacman, ghosts_to_eat[0])).actions[0])
+        return
 
             
-        elif status == PacManStatus.BAITING:
-            print("BAITING STATUS")
-
-
-        elif status == PacManStatus.EATING:
-            return
-
-        
         targets = active_pills + active_power_pills
 
 
-        print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
+        # print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
 
         kam = active_power_pills[0] if active_power_pills else ghost_locs[0]
 
         mojproblem = ProblemOdDo(self.game, pacman, kam)
         sol = ucs(mojproblem)
         if sol is not None and sol.actions:
-            print(f"JO : {sol.actions[0]}")
+            # print(f"JO : {sol.actions[0]}")
             self.pacman.set(sol.actions[0])
 
-        # print(f"Chod takto : \n {ucs(mojproblem).actions}")
+        # # print(f"Chod takto : \n {ucs(mojproblem).actions}")
 
-        # print(f"eating_time {eating_time}")
-        # print(f"ghost_locs {ghost_locs}")
-        # print(f"ghost_dirs {ghost_dirs}")
-        # print(f"edible_times {edible_times}")
+        # # print(f"eating_time {eating_time}")
+        # # print(f"ghost_locs {ghost_locs}")
+        # # print(f"ghost_dirs {ghost_dirs}")
+        # # print(f"edible_times {edible_times}")
 
 
 
@@ -136,6 +170,6 @@ class Patrik(PacManControllerBase):
         if sol is None or not sol.actions:
             pass
             # if self.verbose:
-            #     print("No path found.", file=sys.stderr)
+            #     # print("No path found.", file=sys.stderr)
         else:
             self.pacman.set(sol.actions[0])
