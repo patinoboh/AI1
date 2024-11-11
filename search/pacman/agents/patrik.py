@@ -20,16 +20,41 @@ class PacProblem(Problem):
         return self.game
 
     def actions(self, state: int) -> List[int]:
-        return self.game.get_possible_pacman_dirs(True)
+        # return self.game.get_possible_pacman_dirs(True)a
+        return self.game.get_possible_dirs(state)
 
     def result(self, state: int, action: int) -> int:
-        return 0
+        return self.game.get_neighbor(state, action)
 
     def is_goal(self, state: int) -> bool:
         return True
 
     def cost(self, state: int, action: int) -> float:
         return 1
+
+class ProblemOdDo(Problem):
+    def __init__(self, game, start_pos, end_pos):
+        self.game = game
+        self.start = start_pos
+        self.end = end_pos
+
+    def initial_state(self):
+        return self.start
+    
+    def actions(self, state):
+        return self.game.get_possible_dirs(state)
+    
+    def result(self, state, action):
+        return self.game.get_neighbor(state, action)
+    
+    def is_goal(self, state):
+        return state == self.end
+    
+    def cost(self, state, action):
+        return 1
+
+
+
 
 
 class Patrik(PacManControllerBase):
@@ -44,7 +69,26 @@ class Patrik(PacManControllerBase):
 
         print(f"fruit {fruit}")
         print(f"pacman {pacman}")
+        print(f"hore : {self.game.get_neighbor(pacman, Direction.UP)}")
+        # print(f"dole : {self.game.get_neighbor(pacman, Direction.DOWN)}")
+        # print(f"dolava : {self.game.get_neighbor(pacman, Direction.LEFT)}")
+        # print(f"doprava : {self.game.get_neighbor(pacman, Direction.RIGHT)}")
+
+        active_pills = game.get_active_pills_nodes()
+        
+        active_power_pills = game.get_active_power_pills_nodes()
+        targets = active_pills + active_power_pills
+
+
         print("ghosts : ", " , ".join(str(x) for x in ghost_locs))
+
+        mojproblem = ProblemOdDo(self.game, pacman, ghost_locs[0])
+        sol = ucs(mojproblem)
+        if sol is not None and sol.actions:
+            print(f"JO : {sol.actions[0]}")
+            self.pacman.set(sol.actions[0])
+
+        # print(f"Chod takto : \n {ucs(mojproblem).actions}")
 
         # print(f"eating_time {eating_time}")
         # print(f"ghost_locs {ghost_locs}")
