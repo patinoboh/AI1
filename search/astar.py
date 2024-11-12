@@ -28,17 +28,17 @@ def retrieve_actions(actions, state):
 def AStar(prob: HeuristicProblem) -> Solution:
     """Return Solution of the problem solved by AStar search."""
 
-    count = 0
-    q = [Node(prob.estimate(prob.initial_state()), 0, count, prob.initial_state(), None, None)]
+    count = 0 # tie breaker
+    q = [Node(0 + 0 + prob.estimate(prob.initial_state()), 0, count, prob.initial_state(), None, None)]
 
     visited = {} # not exapanded nodes, but all nodes that have been in queue so far
+    in_queue = {q[0].state : q[0].heuristic_cost}
 
     while q:
         node = hq.heappop(q)
+        del in_queue[node.state]
 
         state = node.state
-        old_state = node.old_state
-        action = node.action
         real_cost = node.real_cost
 
         if prob.is_goal(state):
@@ -51,9 +51,22 @@ def AStar(prob: HeuristicProblem) -> Solution:
                 new_state = prob.result(state, a)
                 action_cost = prob.cost(state, a)
                 heuristic = prob.estimate(new_state)
-                if (new_state not in visited) or (visited[new_state].heuristic_cost > real_cost + action_cost + heuristic):
-                    count += 1
-                    new_node = Node(real_cost + action_cost + heuristic, real_cost + action_cost, count, new_state, state, a)
-                    hq.heappush(q, new_node)
+                count += 1
+                if new_state not in visited:
+
+                    if new_state not in in_queue:
+                        new_node = Node(real_cost + action_cost + heuristic, real_cost + action_cost, count, new_state, state, a)
+                        hq.heappush(q, new_node)
+                        in_queue[new_state] = real_cost + action_cost + heuristic
+
+                    elif new_state in in_queue and in_queue[new_state] > real_cost + action_cost + heuristic:
+                        new_node = Node(real_cost + action_cost + heuristic, real_cost + action_cost, count, new_state, state, a)
+                        q = [n for n in q if n != new_node]
+                        hq.heapify(q)
+                        hq.heappush(q, new_node)
+                        in_queue[new_state] = real_cost + action_cost + heuristic
+
+                
+
     return None
 
