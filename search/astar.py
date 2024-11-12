@@ -26,18 +26,19 @@ def retrieve_actions(actions, state):
 
 def AStar(prob: HeuristicProblem) -> Solution:
     """Return Solution of the problem solved by AStar search."""
-    # Your implementation goes here.
 
     count = 0
     heuristic = prob.estimate(prob.initial_state())
     q = [Node(heuristic, 0, count, prob.initial_state(), None, None)]
+    q_d = {prob.initial_state(): 0}
 
     visited = {}
 
     while q:
         node = hq.heappop(q)
+        del q_d[node.state]
 
-        path_cost = node.path_cost        
+        path_cost = node.path_cost
         state = node.state
         old_state = node.old_state
         action = node.action
@@ -51,10 +52,12 @@ def AStar(prob: HeuristicProblem) -> Solution:
             for a in prob.actions(state):
                 new_state = prob.result(state, a)
                 action_cost = prob.cost(state, a)
+                heuristic = prob.estimate(new_state)
                 if new_state not in visited:
-                    count += 1
-                    heuristic = prob.estimate(new_state)
-                    new_node = Node(path_cost + action_cost + heuristic, path_cost + action_cost, count, new_state, state, a)
-                    hq.heappush(q, new_node)
+                    if (new_state not in q_d) or (q_d[new_state] > path_cost + action_cost + heuristic):
+                        count += 1
+                        new_node = Node(path_cost + action_cost + heuristic, path_cost + action_cost, count, new_state, state, a)
+                        hq.heappush(q, new_node)
+                        q_d[new_state] = path_cost + action_cost + heuristic
     return None
 
