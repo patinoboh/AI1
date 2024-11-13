@@ -33,13 +33,12 @@ def AStar(prob: HeuristicProblem) -> Solution:
     #                            f_n                     , g_n,   _    , state               , previous, action
     q = [Node(0 + 0 + prob.estimate(prob.initial_state()), 0, tie_break, prob.initial_state(), None, None)]
 
-    visited = {} # not exapanded nodes, but all nodes that have been in queue so far
+    visited = {} # expanded nodes
     # in_queue = {q[0].state : 0} # nodes that are in queue
 
     max_q_size = 0
-    max_visited_size = 0
     while q:
-        max_q_size, max_visited_size = max(max_q_size, len(q)), max(max_visited_size, len(visited))
+        max_q_size = max(max_q_size, len(q))
         node = hq.heappop(q)
         # del in_queue[node.state]
 
@@ -48,8 +47,7 @@ def AStar(prob: HeuristicProblem) -> Solution:
 
         if prob.is_goal(state):
             visited[state] = node
-            print("Max queue size : ", max_q_size)
-            print("Max visited size : ", max_visited_size)
+            # print("Max queue size : ", max_q_size)
             return Solution(retrieve_actions(visited, state), state, g_n)
         
         if state not in visited:
@@ -74,6 +72,5 @@ def AStar(prob: HeuristicProblem) -> Solution:
                     #     in_queue[new_state] = new_node.g_n + action_cost
             
 
-    print("Max queue size:", max_q_size)
-    print("Max visited size:", max_visited_size)
+    # print("Max queue size:", max_q_size)
     return None
