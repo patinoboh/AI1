@@ -14,7 +14,9 @@ class Node:
     action : object
     def __lt__(self, other):
         # return (self.f_n, self.g_n, self.tie_break) < (other.f_n, other.g_n, other.tie_break)
-        return (self.f_n, self.tie_break) < (other.f_n, other.tie_break)
+        # return (self.f_n, self.tie_break) < (other.f_n, other.tie_break)
+        return self.f_n < other.f_n
+
 
 
 def retrieve_actions(actions, state):
