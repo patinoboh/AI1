@@ -32,15 +32,12 @@ def AStar(prob: HeuristicProblem) -> Solution:
     q = [Node(0 + 0 + prob.estimate(prob.initial_state()), 0, count, prob.initial_state(), None, None)]
 
     visited = {} # not exapanded nodes, but all nodes that have been in queue so far
-    in_queue = {q[0].state : q[0].heuristic_cost}
 
     while q:
         node = hq.heappop(q)
-        del in_queue[node.state]
 
         state = node.state
-        real_cost = node.real_cost
-
+        real_cost = node.real_cou
         if prob.is_goal(state):
             visited[state] = node
             return Solution(retrieve_actions(visited, state), state, real_cost)
@@ -53,18 +50,18 @@ def AStar(prob: HeuristicProblem) -> Solution:
                 heuristic = prob.estimate(new_state)
                 count += 1
                 if new_state not in visited:
-
-                    if new_state not in in_queue:
-                        new_node = Node(real_cost + action_cost + heuristic, real_cost + action_cost, count, new_state, state, a)
-                        hq.heappush(q, new_node)
-                        in_queue[new_state] = real_cost + action_cost + heuristic
-
-                    elif new_state in in_queue and in_queue[new_state] > real_cost + action_cost + heuristic:
-                        new_node = Node(real_cost + action_cost + heuristic, real_cost + action_cost, count, new_state, state, a)
-                        q = [n for n in q if n != new_node]
+                    in_q = [n for n in q if n.state == new_state]
+                    new_node = Node(heuristic + real_cost + action_cost, real_cost + action_cost, count, new_state, state, a)
+                    if in_q:
+                        q = [n for n in q if n.state != new_state]
+                        q.append(new_node)
                         hq.heapify(q)
+                    else:
                         hq.heappush(q, new_node)
-                        in_queue[new_state] = real_cost + action_cost + heuristic
+
+                        
+
+                    
 
                 
 
