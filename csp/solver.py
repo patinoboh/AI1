@@ -26,9 +26,6 @@ class Solver:
         If a contradiction is found, return None.
         """
 
-
-        # TODO Your implementation goes here.
-        
         # kukne že ak ohodnotím premennú, tak stále bude platiť, že zvyšok riešnia sa
         # dá ohodnotiť tak AKA v ich doménach sú premenné tak, že sa to dá ohodnotiť
         
@@ -40,42 +37,48 @@ class Solver:
             to_remove = []
             for i, var in enumerate(constraint.vars):
                 if csp.value[var] == True:
-                    constraint.count -= 1
+                    constraint.count -= 1 # TODO
                     to_remove.append(var)
-                elif csp.value[var] == False:
+                if csp.value[var] == False:
                     to_remove.append(var)
             for var in to_remove:
                 constraint.vars.remove(var)
                 
-            if constraint.count == 0:
+            if len(constraint.vars) < constraint.count or constraint.count < 0:
+                csp.reset(set_vars)
+                return None
+            
+            elif constraint.count == 0:
                 for var in constraint.vars:
                     set_vars.append(var)
                     csp.set(var, False)
+            
             elif len(constraint.vars) == constraint.count:
                 for var in constraint.vars:
                     set_vars.append(var)
                     csp.set(var, True)
-            elif len(constraint.vars) < constraint.count or constraint.count < 0:
-                for var in set_vars:
-                    csp.reset(set_vars)
-                return None
         
         return set_vars
 
+    def is_done(self, csp: BooleanCSP):
+        for constraint in csp.constraints:
+            if any(csp.value[var] is None for var in constraint.vars):
+                return False
+            if sum([csp.value[var] for var in constraint.vars]) != constraint.count:
+                return False
+        return True
+    
+    def is_consistent(self, var, csp : BooleanCSP):
+        for constraint in csp.var_constraints[var]:
+            trues = [var for var in constraint.vars if csp.value[var] == True]
+            falses = [var for var in constraint.vars if csp.value[var] == False]
+            nones = [var for var in constraint.vars if csp.value[var] is None]
+            if len(trues) > constraint.count:
+                return False
+            elif len(trues) + len(nones) < constraint.count:
+                return False
+        return True
 
-
-        # keď zmením premennú, tak musím kuknúť všetky kde sa nachádzala (asi)
-        # povyhadzujem také, ktoré nemajú riešenie
-        # pozor že ak som kontroloval lokálnu konzistenciu čohosi a zmenil som tomu doménu,
-        # tak mi to môže dojebať niečo iné, teda to musím pozrieť znova a preto queue lebo to potrebujem pozerať nanovo
-
-        # v našom riešení sú premenné binárne a teda každá zmena domény = ohodnotenie
-
-        # tu môžem normálne nastaviť hodnoty premennej pomocou set a tak
-        # ale musím si to pamätať (lenže to si budem tak či tak aby som to mohol vrátiť)
-        # nejaká metóda .reset s listom
-
-        raise NotImplementedError
 
     def solve(self, csp: BooleanCSP) -> Optional[List[int]]:
         """
@@ -85,14 +88,34 @@ class Solver:
         Return a list of variables whose values were inferred.
         If no solution is found, return None.
         """
-        # Your implementation goes here.
+
+        if self.is_done(csp): return [csp.value[var] for var in range(csp.num_vars)]
+        
+        unassigned = [var for var in range(csp.num_vars) if csp.value[var] is None]
+        if not unassigned: return None
+
+        heuristic_var = max(unassigned,key=lambda var: len(csp.var_constraints[var]))
+    
+        for value in [True, False]:
+            inferences = []
+            csp.set(heuristic_var, value)
+            if self.is_consistent(heuristic_var, csp):
+                inferences = self.forward_check(csp)
+                if inferences is not None:
+                    result = self.solve(csp)
+                    if result is not None:
+                        return result
+                    
+                if self.is_done(csp): return [csp.value[var] for var in range(csp.num_vars)]
+                
+                inferences = inferences if inferences is not None else []
+            csp.reset(inferences + [heuristic_var])
+            
+        return None
 
         # vráti mi NEJAKÉ ohodnotenie, teda to môže byť aj také,
         # ktoré je niesprávne, pretože je nevynútené
         
-        # forward check tento problém NEMÁ
-
-        raise NotImplementedError
 
     def infer_var(self, csp: BooleanCSP) -> int:
         """
