@@ -15,6 +15,8 @@ class Solver:
 
     def __init__(self):
         # Your implementation goes here.
+        self.csp = None
+
         pass
 
     def forward_check(self, csp: BooleanCSP) -> Optional[List[int]]:
@@ -23,9 +25,43 @@ class Solver:
         Return a list of variables (if any) whose values were inferred.
         If a contradiction is found, return None.
         """
+
+
         # TODO Your implementation goes here.
+        
         # kukne že ak ohodnotím premennú, tak stále bude platiť, že zvyšok riešnia sa
         # dá ohodnotiť tak AKA v ich doménach sú premenné tak, že sa to dá ohodnotiť
+        
+        set_vars = []
+        while csp.unchecked:
+            constraint = csp.unchecked.popleft()
+            
+            # remove assigned vars
+            to_remove = []
+            for i, var in enumerate(constraint.vars):
+                if csp.value[var] == True:
+                    constraint.count -= 1
+                    to_remove.append(var)
+                elif csp.value[var] == False:
+                    to_remove.append(var)
+            for var in to_remove:
+                constraint.vars.remove(var)
+                
+            if constraint.count == 0:
+                for var in constraint.vars:
+                    set_vars.append(var)
+                    csp.set(var, False)
+            elif len(constraint.vars) == constraint.count:
+                for var in constraint.vars:
+                    set_vars.append(var)
+                    csp.set(var, True)
+            elif len(constraint.vars) < constraint.count or constraint.count < 0:
+                for var in set_vars:
+                    csp.reset(set_vars)
+                return None
+        
+        return set_vars
+
 
 
         # keď zmením premennú, tak musím kuknúť všetky kde sa nachádzala (asi)
