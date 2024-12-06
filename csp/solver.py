@@ -35,6 +35,7 @@ class Solver:
             
             # remove assigned vars
             to_remove = []
+
             for i, var in enumerate(constraint.vars):
                 if csp.value[var] == True:
                     constraint.count -= 1 # TODO
@@ -124,15 +125,15 @@ class Solver:
         If any variable is inferred, return it; otherwise return -1.
         """
         # Your implementation goes here.
-        """
-        foreach xi in vars:
-            set(Xi, True)
-            if solve(csp) is None:
-                set(Xi, False)
-            set(xi, False)
-            if solve(csp) is None:
-                set(Xi, True)
-            # inak som tu a neviem o tej premennej nič
-        """
-
-        raise NotImplementedError
+        
+        for var in range(csp.num_vars):
+            csp.set(var, True)
+            if self.solve(csp) is None:
+                csp.set(var, False)
+                return var
+            csp.set(var, False)
+            if self.solve(csp) is None:
+                csp.set(var, True)
+                return var
+            csp.reset([var])
+        return -1
