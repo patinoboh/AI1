@@ -26,38 +26,36 @@ class Solver:
         If a contradiction is found, return None.
         """
 
-        # kukne že ak ohodnotím premennú, tak stále bude platiť, že zvyšok riešnia sa
-        # dá ohodnotiť tak AKA v ich doménach sú premenné tak, že sa to dá ohodnotiť
-        
         set_vars = []
         while csp.unchecked:
             constraint = csp.unchecked.popleft()
             
             # remove assigned vars
             to_remove = []
-
-            for i, var in enumerate(constraint.vars):
-                if csp.value[var] == True:
-                    constraint.count -= 1 # TODO
-                    to_remove.append(var)
-                if csp.value[var] == False:
-                    to_remove.append(var)
-            for var in to_remove:
-                constraint.vars.remove(var)
+            
+            trues = [var for var in constraint.vars if csp.value[var] == True]
+            falses = [var for var in constraint.vars if csp.value[var] == False]
+            nones = [var for var in constraint.vars if csp.value[var] is None]
+            vars_c = len(constraint.vars)
                 
-            if len(constraint.vars) < constraint.count or constraint.count < 0:
+            if len(trues) + len(nones) < constraint.count or constraint.count < 0 or len(trues) > constraint.count:
                 csp.reset(set_vars)
                 return None
             
+            elif constraint.count == len(trues):
+                for var in nones:
+                    set_vars.append(var)
+                    csp.set(var, False)
+
+            elif constraint.count == len(trues) + len(nones):
+                for var in nones:
+                    set_vars.append(var)
+                    csp.set(var, True)
+
             elif constraint.count == 0:
                 for var in constraint.vars:
                     set_vars.append(var)
                     csp.set(var, False)
-            
-            elif len(constraint.vars) == constraint.count:
-                for var in constraint.vars:
-                    set_vars.append(var)
-                    csp.set(var, True)
         
         return set_vars
 
@@ -74,6 +72,7 @@ class Solver:
             trues = [var for var in constraint.vars if csp.value[var] == True]
             falses = [var for var in constraint.vars if csp.value[var] == False]
             nones = [var for var in constraint.vars if csp.value[var] is None]
+            
             if len(trues) > constraint.count:
                 return False
             elif len(trues) + len(nones) < constraint.count:
@@ -106,17 +105,12 @@ class Solver:
                     result = self.solve(csp)
                     if result is not None:
                         return result
-                    
-                if self.is_done(csp): return [csp.value[var] for var in range(csp.num_vars)]
                 
                 inferences = inferences if inferences is not None else []
             csp.reset(inferences + [heuristic_var])
             
         return None
 
-        # vráti mi NEJAKÉ ohodnotenie, teda to môže byť aj také,
-        # ktoré je niesprávne, pretože je nevynútené
-        
 
     def infer_var(self, csp: BooleanCSP) -> int:
         """
@@ -124,16 +118,25 @@ class Solver:
         if possible using a proof by contradiction.
         If any variable is inferred, return it; otherwise return -1.
         """
-        # Your implementation goes here.
+        unassigned = [var for var in range(csp.num_vars) if csp.value[var] is None]
+        unassigned.sort(key=lambda var: -len(csp.var_constraints[var]))
         
-        for var in range(csp.num_vars):
+        values = csp.value.copy()
+
+        for var in unassigned:
             csp.set(var, True)
-            if self.solve(csp) is None:
+            res = self.solve(csp)
+            if res is None:
                 csp.set(var, False)
                 return var
+            
+            csp.value = values.copy()
             csp.set(var, False)
-            if self.solve(csp) is None:
+            res = self.solve(csp)
+            if res is None:
                 csp.set(var, True)
                 return var
+            
+            csp.value = values.copy()
             csp.reset([var])
         return -1
